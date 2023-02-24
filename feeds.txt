@@ -1,0 +1,20 @@
+#
+# podsnapper subscriptions
+#
+# Format:
+# <Feed Name>	<Feed URL>	<File Naming Method>
+#
+# <Feed Name>
+# Will be used as a unique name for this feed. Downloaded files will be stored in a directory with this name. 
+#
+# <Feed URL>
+# The URL of the RSS feed.
+#
+# <File Naming Method>
+# file - will attempt to reuse filename of target item (default)
+# title - will use feed item title property instead
+#
+# Example:
+# hardcorehistory	http://feeds.feedburner.com/dancarlin/history?format=xml	file
+#
+
