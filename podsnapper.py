@@ -110,7 +110,7 @@ def download_items(items, feeds):
 		# Compute filename based on feed settings
 		filename = ""
 		if feeds[item.feed_id].naming == 'title':
-			filename = item.title + ".mp3"
+			filename = item.title.replace("/", "%2f") + ".mp3"
 		else:
 			url = urlparse(item.url)
 			filename = os.path.basename(url.path)
