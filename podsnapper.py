@@ -3,7 +3,7 @@
 import os
 import urllib.request
 from urllib.parse import urlparse
-import xml.etree.ElementTree as ET 
+import xml.etree.ElementTree as ET
 import requests
 
 # Settings
@@ -24,7 +24,7 @@ class Item:
 	def __init__(self):
 		self.id = ""
 		self.title = ""
-		self.url = "" 
+		self.url = ""
 		self.feed_id = ""
 	def __str__(self):
 		return "Item[" + self.id + "] - " + self.title + " [" + self.url + "]"
@@ -103,6 +103,9 @@ def parse_items(feed_id, channel, items):
 				item.url = attr.attrib["url"]
 		items.append(item)
 
+def strip_url(url):
+	return url.split('?')[0]
+
 def download_items(items, feeds):
 	# Open inventory file for writing
 	inv = open(INV_FILE, 'a')
@@ -114,7 +117,6 @@ def download_items(items, feeds):
 		else:
 			url = urlparse(item.url)
 			filename = os.path.basename(url.path)
-		
 		target_dir = POD_DIR + item.feed_id
 		if not os.path.isdir(target_dir):
 			os.mkdir(target_dir)
@@ -126,8 +128,8 @@ def download_items(items, feeds):
 			r = requests.get(item.url,headers=HEADERS)
 			with open(target, 'wb') as fh:
 			    fh.write(r.content)
-		# Update inventory
-		inv.write(item.url + "\n")
+		# Update inventory with stripped URL
+		inv.write(strip_url(item.url) + "\n")
 
 def update():
 
@@ -137,11 +139,11 @@ def update():
 	feeds = load_feeds()
 	items = []
 	for f in feeds:
-		download_rss(f, feeds[f].url)	
+		download_rss(f, feeds[f].url)
 		parse_rss(f, items)
 
 	# Remove items that we have already downloaded
-	items[:] = [item for item in items if (not item.url in inv)]
+	items[:] = [item for item in items if (not strip_url(item.url) in inv)]
 
 	print("Found " + str(len(items)) + " items")
 	download_items(items, feeds)
