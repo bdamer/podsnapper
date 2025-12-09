@@ -5,6 +5,7 @@ import urllib.request
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 import requests
+import sys
 
 # Settings
 HOME_DIR=os.path.expanduser('~')
@@ -18,6 +19,11 @@ TMP_DIR=HOME_DIR + "/.podsnapper/tmp/"
 POD_DIR=HOME_DIR + "/Podcasts/"
 # Headers to send when making requests
 HEADERS = {"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"}
+
+DRY_RUN=False
+if len(sys.argv) > 1:
+	if sys.argv[1] == "--dry-run" or sys.argv[1] == '-dr':
+		DRY_RUN=True
 
 # Begin podsnapper
 class Item:
@@ -121,7 +127,7 @@ def download_items(items, feeds):
 		if not os.path.isdir(target_dir):
 			os.mkdir(target_dir)
 		target = target_dir + "/" + filename
-		if os.path.isfile(target):
+		if os.path.isfile(target) or DRY_RUN:
 			print("Target file already exists, skipping: " + filename)
 		else:
 			print("Downloading " + item.url + " to " + target)
@@ -139,8 +145,13 @@ def update():
 	feeds = load_feeds()
 	items = []
 	for f in feeds:
-		download_rss(f, feeds[f].url)
-		parse_rss(f, items)
+		try:
+			download_rss(f, feeds[f].url)
+			parse_rss(f, items)
+		except ConnectionError:
+			print(f"Connection error while updating feed {f}")
+		except Exception:
+			print(f"Generic error while updating feed {f}")
 
 	# Remove items that we have already downloaded
 	items[:] = [item for item in items if (not strip_url(item.url) in inv)]
