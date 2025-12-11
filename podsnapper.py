@@ -48,7 +48,7 @@ def init():
 		os.mkdir(POD_DIR)
 
 def load_inventory():
-	print("Loading inventory: " + INV_FILE)
+	print(f'Loading inventory: {INV_FILE}')
 	res = set()
 	if os.path.isfile(INV_FILE):
 		file = open(INV_FILE, 'r')
@@ -58,7 +58,7 @@ def load_inventory():
 	return res
 
 def load_feeds():
-	print("Loading feeds: " + FEEDS_FILE)
+	print(f'Loading feeds: {FEEDS_FILE}')
 	res = {}
 	if os.path.isfile(FEEDS_FILE):
 		file = open(FEEDS_FILE, 'r')
@@ -71,11 +71,11 @@ def load_feeds():
 			if len(tok) == 3:
 				res[tok[0]] = Feed(tok[0], tok[1], tok[2])
 			else:
-				print("Invalid feed: " + line)
+				print(f'Invalid feed: {line}')
 	return res
 
 def download_rss(feed_id, url):
-	print("Downloading: " + url)
+	print(f'Downloading: {url}')
 	r = requests.get(url,headers=HEADERS)
 	with open(TMP_DIR + feed_id + ".rss", 'wb') as fh:
 	    fh.write(r.content)
@@ -92,7 +92,7 @@ def parse_rss(feed_id, items):
 		for channel in root:
 			parse_items(feed_id, channel, items)
 	except Exception:
-		print("Failed to parse feed: " + feed_id)
+		print(f'Failed to parse feed: {feed_id}')
 
 def parse_items(feed_id, channel, items):
 	for i in channel:
@@ -128,14 +128,14 @@ def download_items(items, feeds):
 			os.mkdir(target_dir)
 		target = target_dir + "/" + filename
 		if os.path.isfile(target) or DRY_RUN:
-			print("Target file already exists, skipping: " + filename)
+			print(f'Target file already exists, skipping: {filename}')
 		else:
-			print("Downloading " + item.url + " to " + target)
+			print(f'Downloading item {item.title} [{item.url}] to {target}')
 			r = requests.get(item.url,headers=HEADERS)
 			with open(target, 'wb') as fh:
 			    fh.write(r.content)
 		# Update inventory with stripped URL
-		inv.write(strip_url(item.url) + "\n")
+		inv.write(f'{item.feed_id}|{item.id}\n')
 
 def update():
 
@@ -154,7 +154,7 @@ def update():
 			print(f"Generic error while updating feed {f}")
 
 	# Remove items that we have already downloaded
-	items[:] = [item for item in items if (not strip_url(item.url) in inv)]
+	items[:] = [item for item in items if (not f'{item.feed_id}|{item.id}' in inv)]
 
 	print("Found " + str(len(items)) + " items")
 	download_items(items, feeds)
